@@ -1,0 +1,14 @@
+/home/amos/Documents/code/ToK-2026/bin/Debug/net10.0/ToK-2026
+/home/amos/Documents/code/ToK-2026/bin/Debug/net10.0/ToK-2026.deps.json
+/home/amos/Documents/code/ToK-2026/bin/Debug/net10.0/ToK-2026.runtimeconfig.json
+/home/amos/Documents/code/ToK-2026/bin/Debug/net10.0/ToK-2026.dll
+/home/amos/Documents/code/ToK-2026/bin/Debug/net10.0/ToK-2026.pdb
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.GeneratedMSBuildEditorConfig.editorconfig
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.AssemblyInfoInputs.cache
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.AssemblyInfo.cs
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.csproj.CoreCompileInputs.cache
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.dll
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/refint/ToK-2026.dll
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.pdb
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ToK-2026.genruntimeconfig.cache
+/home/amos/Documents/code/ToK-2026/obj/Debug/net10.0/ref/ToK-2026.dll
