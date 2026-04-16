@@ -1,5 +1,5 @@
 
-namespace ToK_2026
+namespace ToK_2026.WeddingFood
 {
     class WeddingFood
     {
@@ -26,6 +26,29 @@ namespace ToK_2026
             }
             //rough debugging
             Console.WriteLine(Input);
+
+            /*
+            order of priority:
+                do not serve unwanted pizza
+                serve appreciated pizza
+                neutral
+            
+            approaches
+                brute force all options and reduce(max) 
+                distribute greedily and then swap when unhappy assignment happens
+                    how does this ensure correct solution? 
+                distribute so that no one is unhappy, then swap when it increases score
+                distribute randomly, for each guest swap if it increases score
+            
+            observations
+                score is capped at number of guests
+                pizza types is capped at number of guests
+            
+            edge cases
+                there is only one type of pizza --> there is only one solution
+                there are an equal amount of types and guests
+
+            */
         }
 
         public void ReadInput(string inputpath)
@@ -45,115 +68,189 @@ namespace ToK_2026
                 Input = null;
             }
         }
-    }
 
-    class WeddingFoodInput
-    {
-
-        public int TotalPizzaTypes {get; set;}
-        public int TotalGuests {get; set;}
-        public Dictionary<string, int> OrderedSlices {get; set;}
-        public List<string[]> PizzaPreferences {get; set;}
-
-        public WeddingFoodInput()
+        private int BruteForce()
         {
-            TotalPizzaTypes = -1;
-            TotalGuests = -1;
-            OrderedSlices = [];
-            PizzaPreferences = [];
+            /*
+            construct all solutions
+                pick one starting guest:
+                    per pizza type: 
+                        pick one starting guest, with 1 pizza spent
+                        ...until 1 guest left (which means 1 pizza) then march back up the tree
+            */
+            return -1;
         }
 
-        public WeddingFoodInput(int pizzaTypesAmount, int totalGuests, Dictionary<string, int> slices, List<string[]> preferences)
+        private int DistributeGreedily()
         {
-            TotalPizzaTypes = pizzaTypesAmount;
-            TotalGuests = totalGuests;
-            OrderedSlices = slices;
-            PizzaPreferences = preferences;
-        }
-
-        public static WeddingFoodInput FromFile(string filepath)
-        {
-            WeddingFoodInput input = new();
-
-            try
+            if (Input is null)
             {
-                using StreamReader reader = new(filepath);
+                Console.WriteLine("Cannot run WeddingFood: No valid input to use.");
+                return -1;
+            }
 
-                // Amount of pizza types and amount of guests
-                string? firstLine = reader.ReadLine()?.ToLower();
-                int[]? typesAndGuests = firstLine?.Split(' ')?.Select(x => Convert.ToInt32(x)).ToArray();
-                if (typesAndGuests != null && typesAndGuests.Length == 2)
+            Dictionary<string, int> remainingPizzas = new(Input.OrderedSlices);
+            List<Guest> happyGuests = [];
+            List<Guest> neutralGuests = [];
+            List<Guest> sadGuests = [];
+
+            // Supplying happy pizzas
+            List<Guest> remainingGuests = [];
+            foreach (var guest in Input.Guests)
+            {
+                if (remainingPizzas[guest.PreferedPizza] > 0 )
                 {
-                    input.TotalPizzaTypes = typesAndGuests[0];
-                    input.TotalGuests = typesAndGuests[1];
+                    remainingPizzas[guest.PreferedPizza] -= 1;
+                    guest.UsedPizza = guest.PreferedPizza;
+                    happyGuests.Add(guest);
                 }
                 else
                 {
-                    throw new InputException(message: $"Cannot parse first line of file {filepath}");
-                }
-
-                // Amount of slices per pizza type
-                string? nextLine;
-                for (int i = 0; i < input.TotalPizzaTypes; i++)
-                {
-                    nextLine = reader.ReadLine()?.ToLower();
-                    string[]? columns = nextLine?.Split(' ');
-                    if (columns == null)
-                    {
-                        throw new InputException(message: $"Cannot parse line {i + 2} of file {filepath}");
-                    }
-                    else if (columns.Length != 2)
-                    {
-                        throw new InputException(message: $"Cannot parse line {i + 2} of file {filepath}: incorrect number of arguments");
-                    }
-                    else
-                    {
-                        input.OrderedSlices.Add(columns[0], Convert.ToInt32(columns[1]));
-                    }
-                }
-
-                // Pizza preferences
-                for (int i = 0; i < input.TotalGuests; i++)
-                {
-                    nextLine = reader.ReadLine()?.ToLower();
-                    string[]? columns = nextLine?.Split(' ');
-                    if (columns == null)
-                    {
-                        throw new InputException(message: $"Cannot parse line {i + 2 + input.TotalPizzaTypes} of file {filepath}");
-                    }
-                    else if (columns.Length != 3)
-                    {
-                        throw new InputException(message: $"Cannot parse line {i + 2} of file {filepath}: incorrect number of arguments");
-                    }
-                    else
-                    {
-                        // First
-                        input.PizzaPreferences.Add([.. columns.Skip(1)]);
-                    }
+                    remainingGuests.Add(guest);
                 }
             }
-            catch (IOException)
+
+            // Supplying neutral pizzas
+            foreach (var guest in remainingGuests)
             {
-                throw;
+                if (FindNeutralPizza(guest, out string neutralPizza))
+                {
+                    remainingPizzas[neutralPizza] -= 1;
+                    guest.UsedPizza = neutralPizza;
+                    neutralGuests.Add(guest);
+                }
+                else // sad pizza
+                {
+                    sadGuests.Add(guest);
+                }
             }
 
-            return input;
+            // Handling sad pizzas
+            remainingGuests = [.. sadGuests];
+            sadGuests = [];
+            foreach (var guest in remainingGuests)
+            {
+                (Guest? Candidate, string Pizza) bestSwap = (null, "");
+                
+                // Check neutral guests first
+                List<Guest> neutralSwapCandidates = neutralGuests.FindAll(x => x.UsedPizza != guest.UnhappyPizza);
+                foreach (var candidate in neutralSwapCandidates)
+                {
+                    if (FindNeutralPizzaFrom(candidate, remainingPizzas, out string neutralPizza))
+                    {
+                        bestSwap = (candidate, neutralPizza);
+                        if (candidate.UsedPizza == guest.PreferedPizza) break; // best case scenario
+                    }
+                }
+
+                if (bestSwap.Candidate != null)
+                {
+                    guest.UsedPizza = bestSwap.Candidate.UsedPizza;
+                    bestSwap.Candidate.UsedPizza = bestSwap.Pizza;
+                    remainingPizzas[bestSwap.Pizza] -= 1;
+
+                    if (bestSwap.Candidate.UsedPizza == guest.PreferedPizza)
+                    {
+                        happyGuests.Add(guest);
+                    }
+                    else
+                    {
+                        neutralGuests.Add(guest);
+                    }
+
+                    break;
+                }
+
+                // Check happy guests after
+                List<Guest> happySwapCandidates = neutralGuests.FindAll(x => x.UsedPizza != guest.UnhappyPizza);
+                foreach (var candidate in happySwapCandidates)
+                {
+
+                    // THIS PART NEEDS TO BE EDITED
+                    if (FindNeutralPizzaFrom(candidate, remainingPizzas, out string neutralPizza))
+                    {
+                        bestSwap = (candidate, neutralPizza);
+                        if (candidate.UsedPizza == guest.PreferedPizza) break; // best case scenario
+                    }
+                }
+
+                if (bestSwap.Candidate != null)
+                {
+                    guest.UsedPizza = bestSwap.Candidate.UsedPizza;
+                    bestSwap.Candidate.UsedPizza = bestSwap.Pizza;
+                    remainingPizzas[bestSwap.Pizza] -= 1;
+
+                    if (bestSwap.Candidate.UsedPizza == guest.PreferedPizza)
+                    {
+                        happyGuests.Add(guest);
+                    }
+                    else
+                    {
+                        neutralGuests.Add(guest);
+                    }
+                    
+                    break;
+                }
+
+                // find neutrals with pizzas that make me happy
+                // do any of these remain neutral with a remaining pizza? -> swap
+                // among the remaining neutrals, do any remain neutral with a remaining pizza? -> swap
+                // otherwise, do the same with happy
+                // otherwise, become sad
+            }
+
+            int score = happyGuests.Count - sadGuests.Count * 2;
+            return score;
+
+
+            /*
+                Algorithm:
+
+                list wants per pizza
+                fullfill wants at first come, first serve
+                list neutrals per pizza
+                fullfill neutrals at first come, first serve
+                
+                for each (to be unhappy) guest remaining: 
+                    can I swap with a neutral to create happy + happy? <-- this should not be possible at this stage
+                        if so this is +4
+                    can I swap with a neutral to create happy + neutral?
+                        if so this is +3
+                    can I swap with a neutral to create neutral + neutral?
+                        if so this is +2
+                    can I swap with a happy to create happy + neutral?
+                        if so this is +2
+                    can I swap with a happy to create neutral + neutral?
+                        if so this is +1
+
+                    if no to all, put on really unhappy list
+                
+                assign pizzas in order to really unhappy guests
+
+                calculate and return score
+
+
+                Weakness: potential local maxima based on initial choices (at first come, first serve stages) 
+            */
         }
 
-        public override string ToString()
+        private bool FindNeutralPizza(Guest guest, out string neutralPizza)
         {
-            string output = "";
-            output += $"Amount of pizza types: {TotalPizzaTypes}\n";
-            output += $"Amount of guests: {TotalGuests}\n";
-            foreach ((var key, var item) in OrderedSlices)
+            if (Input is null)
             {
-                output += $"{key} {item}\n";
+                Console.WriteLine("Cannot run WeddingFood: No valid input to use.");
+                neutralPizza = "";
+                return false;
             }
-            foreach (var line in PizzaPreferences)
-            {
-                output += $"{string.Join(' ', line)}\n";
-            }
-            return output;
+
+            return FindNeutralPizzaFrom(guest, Input.OrderedSlices, out neutralPizza);
+        }
+
+        private static bool FindNeutralPizzaFrom(Guest guest, Dictionary<string, int> availablePizzas, out string neutralPizza)
+        {
+            neutralPizza = "";
+            return false;
         }
     }
+
 }

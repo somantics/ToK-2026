@@ -1,4 +1,5 @@
 ﻿using ToK_2026;
+using ToK_2026.WeddingFood;
 
 Console.WriteLine("Running FizzBuzz w. defaults.");
 FizzBuzz fizz_buzz = new (["program", "2", "3", "6"]);
