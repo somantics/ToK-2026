@@ -26,8 +26,6 @@ namespace ToK_2026.WeddingFood
             }
             int result = DistributeGreedily();
             Console.WriteLine(result);
-            //rough debugging
-            Console.WriteLine(Input);
 
             /*
             order of priority:
@@ -202,9 +200,6 @@ namespace ToK_2026.WeddingFood
             }
 
             int score = happyGuests.Count - sadGuests.Count * 2;
-            Console.WriteLine(happyGuests.Count);
-            Console.WriteLine(neutralGuests.Count);
-            Console.WriteLine(sadGuests.Count);
             return score;
 
 
