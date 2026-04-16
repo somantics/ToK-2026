@@ -128,6 +128,7 @@ namespace ToK_2026.WeddingFood
             // Handling sad pizzas
             remainingGuests = [.. sadGuests];
             sadGuests = [];
+
             foreach (var guest in remainingGuests)
             {
                 (Guest? Candidate, string Pizza) bestSwap = (null, "");
@@ -152,6 +153,8 @@ namespace ToK_2026.WeddingFood
                     if (bestSwap.Candidate.UsedPizza == guest.PreferedPizza)
                     {
                         happyGuests.Add(guest);
+                        happyGuests.Remove(bestSwap.Candidate);
+                        neutralGuests.Add(bestSwap.Candidate);
                     }
                     else
                     {
@@ -162,7 +165,8 @@ namespace ToK_2026.WeddingFood
                 }
 
                 // Can I swap with a happy guest?
-                List<Guest> happySwapCandidates = neutralGuests.FindAll(x => x.UsedPizza != guest.UnhappyPizza);
+                List<Guest> happySwapCandidates = happyGuests.FindAll(x => x.UsedPizza != guest.UnhappyPizza);
+                Console.WriteLine($"Happy swap candidates: {happySwapCandidates.Count}");
                 foreach (var candidate in happySwapCandidates)
                 {
                     if (remainingPizzas[candidate.PreferedPizza] > 0)
@@ -194,6 +198,10 @@ namespace ToK_2026.WeddingFood
                     
                     break;
                 }
+                Console.WriteLine($"Nr. of sad post swap: {sadGuests.Count}");
+                Console.WriteLine($"Nr. of neutral post swap: {neutralGuests.Count}");
+                Console.WriteLine($"Nr. of remaining post swap: {remainingGuests.Count}");
+                Console.WriteLine($"Remaining post-swap pizzas: {remainingPizzas.Sum(x => x.Value)}");
                 
                 // Cannot swap for improvement
                 sadGuests.Add(guest);
@@ -250,7 +258,14 @@ namespace ToK_2026.WeddingFood
 
         private static bool FindNeutralPizzaFrom(Guest guest, Dictionary<string, int> availablePizzas, out string neutralPizza)
         {
+
             neutralPizza = "";
+            string? possibleMatch = availablePizzas.Keys.ToList().Find(x => x != guest.UnhappyPizza && x != guest.PreferedPizza);
+            if (possibleMatch != null)
+            {
+                neutralPizza = possibleMatch;
+                return true;
+            }
             return false;
         }
     }
