@@ -24,6 +24,8 @@ namespace ToK_2026.WeddingFood
                 Console.WriteLine("Cannot run WeddingFood: No valid input to use.");
                 return;
             }
+            int result = DistributeGreedily();
+            Console.WriteLine(result);
             //rough debugging
             Console.WriteLine(Input);
 
@@ -132,7 +134,7 @@ namespace ToK_2026.WeddingFood
             {
                 (Guest? Candidate, string Pizza) bestSwap = (null, "");
                 
-                // Check neutral guests first
+                // Can I swap with a neutral guest?
                 List<Guest> neutralSwapCandidates = neutralGuests.FindAll(x => x.UsedPizza != guest.UnhappyPizza);
                 foreach (var candidate in neutralSwapCandidates)
                 {
@@ -161,15 +163,18 @@ namespace ToK_2026.WeddingFood
                     break;
                 }
 
-                // Check happy guests after
+                // Can I swap with a happy guest?
                 List<Guest> happySwapCandidates = neutralGuests.FindAll(x => x.UsedPizza != guest.UnhappyPizza);
                 foreach (var candidate in happySwapCandidates)
                 {
-
-                    // THIS PART NEEDS TO BE EDITED
-                    if (FindNeutralPizzaFrom(candidate, remainingPizzas, out string neutralPizza))
+                    if (remainingPizzas[candidate.PreferedPizza] > 0)
                     {
-                        bestSwap = (candidate, neutralPizza);
+                        bestSwap = (candidate, candidate.PreferedPizza); // good enough swap
+
+                    }
+                    else if (FindNeutralPizzaFrom(candidate, remainingPizzas, out string neutralPizza))
+                    {
+                        bestSwap = (candidate, neutralPizza); // good enough swap
                         if (candidate.UsedPizza == guest.PreferedPizza) break; // best case scenario
                     }
                 }
@@ -191,15 +196,15 @@ namespace ToK_2026.WeddingFood
                     
                     break;
                 }
-
-                // find neutrals with pizzas that make me happy
-                // do any of these remain neutral with a remaining pizza? -> swap
-                // among the remaining neutrals, do any remain neutral with a remaining pizza? -> swap
-                // otherwise, do the same with happy
-                // otherwise, become sad
+                
+                // Cannot swap for improvement
+                sadGuests.Add(guest);
             }
 
             int score = happyGuests.Count - sadGuests.Count * 2;
+            Console.WriteLine(happyGuests.Count);
+            Console.WriteLine(neutralGuests.Count);
+            Console.WriteLine(sadGuests.Count);
             return score;
 
 
@@ -217,6 +222,8 @@ namespace ToK_2026.WeddingFood
                     can I swap with a neutral to create happy + neutral?
                         if so this is +3
                     can I swap with a neutral to create neutral + neutral?
+                        if so this is +2
+                    can I swap with a happy to create happy + happy?
                         if so this is +2
                     can I swap with a happy to create happy + neutral?
                         if so this is +2

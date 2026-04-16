@@ -103,9 +103,9 @@ namespace ToK_2026.WeddingFood
             {
                 output += $"{key} {item}\n";
             }
-            foreach (var line in Guests)
+            foreach (var guest in Guests)
             {
-                output += $"{string.Join(' ', line)}\n";
+                output += $"{guest.PreferedPizza} {guest.UnhappyPizza}\n";
             }
             return output;
         }
